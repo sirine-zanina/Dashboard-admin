@@ -1,49 +1,51 @@
-require("dotenv").config();
-const express = require("express");
+import express from "express";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
+import cors from "cors";
+import corsOptions from "./config/corsOptions.js";
+import dotenv from "dotenv";
+import helmet from "helmet";
+import morgan from "morgan";
+import rootRoutes from "./routes/root.js";
+import clientRoutes from "./routes/client.js";
+import generalRoutes from "./routes/general.js";
+import managementRoutes from "./routes/management.js";
+import salesRoutes from "./routes/sales.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { logger, logEvents } from "./middleware/logger.js";
+import { connectDB } from "./config/dbConn.js";
+import cookieParser from "cookie-parser";
+import path from "path";
+import User from "./models/User.js";
+import { dataUser } from "./data/index.js";
+
+/* CONFIGURATION */
+dotenv.config();
 const app = express();
-
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-
-const errorHandler = require("./middleware/errorHandler");
-const { logger, logEvents } = require("./middleware/logger");
-
-const morgan = require("morgan");
-const helmet = require("helmet");
-
-const cors = require("cors");
-const mongoose = require("mongoose");
-const connectDB = require("./config/dbConn");
-
 const PORT = process.env.PORT || 3500;
-
-connectDB();
 
 console.log(process.env.NODE_ENV);
 
+connectDB();
+mongoose.set("debug", false); // Disable Mongoose debugging output
+
 app.use(logger);
 
-/* CONFIGURATION */
-app.use(cors());
-
 app.use(express.json());
-
+app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(morgan("common"));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-app.use(helmet());
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-
-app.use(morgan("common"));
+app.use(cors(corsOptions));
 
 /* ROUTES */
-app.use("/", require("./routes/root"));
-app.use("/users", require("./routes/userRoutes"));
-app.use("/general", require("./routes/generalRoutes"));
-app.use("/employees", require("./routes/employeeRoutes"));
-app.use("/sales", require("./routes/salesRoutes"));
-app.use("/management", require("./routes/managementRoutes"));
+app.use("/", rootRoutes);
+app.use("/client", clientRoutes);
+app.use("/general", generalRoutes);
+app.use("/management", managementRoutes);
+app.use("/sales", salesRoutes);
 
 app.all("*", (req, res) => {
   res.status(404);
@@ -55,18 +57,19 @@ app.all("*", (req, res) => {
     res.type("txt").send("404 Not Found");
   }
 });
-
 app.use(errorHandler);
 
-/* MONGOOSE SETUP */
-
+// Connect to MongoDB
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+  // Only run once to insert data to database
+
+  //User.insertMany(dataUser);
 });
 
 mongoose.connection.on("error", (err) => {
-  console.log(err);
   logEvents(
     `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
     "mongoErrLog.log"
