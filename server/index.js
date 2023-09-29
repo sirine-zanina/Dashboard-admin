@@ -16,8 +16,12 @@ import { logger, logEvents } from "./middleware/logger.js";
 import { connectDB } from "./config/dbConn.js";
 import cookieParser from "cookie-parser";
 import path from "path";
+
 import User from "./models/User.js";
-import { dataUser } from "./data/index.js";
+import Product from "./models/Product.js";
+import ProductStat from "./models/ProductStat.js";
+
+import { dataUser, dataProduct, dataProductStat } from "./data/index.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -64,7 +68,9 @@ mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-  // Only run once to insert data to database
+  /* Only run once to insert data to database */
+  //Product.insertMany(dataProduct);
+  //ProductStat.insertMany(dataProductStat);
 
   //User.insertMany(dataUser);
 });
