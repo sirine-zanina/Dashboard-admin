@@ -20,8 +20,15 @@ import path from "path";
 import User from "./models/User.js";
 import Product from "./models/Product.js";
 import ProductStat from "./models/ProductStat.js";
-
-import { dataUser, dataProduct, dataProductStat } from "./data/index.js";
+import Transaction from "./models/Transaction.js";
+import OverallStat from "./models/OverallStat.js";
+import {
+  dataUser,
+  dataProduct,
+  dataProductStat,
+  dataTransaction,
+  dataOverallStat,
+} from "./data/index.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -69,8 +76,10 @@ mongoose.connection.once("open", () => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
   /* Only run once to insert data to database */
+  // OverallStat.insertMany(dataOverallStat);
   //Product.insertMany(dataProduct);
   //ProductStat.insertMany(dataProductStat);
+  //Transaction.insertMany(dataTransaction);
 
   //User.insertMany(dataUser);
 });
